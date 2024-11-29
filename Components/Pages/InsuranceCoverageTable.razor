@@ -1,0 +1,50 @@
+﻿@page "/table"
+@using InsuranceCoverageBrowser.Data
+@using InsuranceCoverageBrowser.Models
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DbContext
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!categories.Any())
+{
+    <h1>InsuranceCoverageTable</h1>
+    <p>Total : $0.00</p>
+}
+else
+{
+    <h1>InsuranceCoverageTable</h1>
+    <p>Total : @categories.SelectMany(c => c.Items).Sum(item => item.Price).ToString("C")</p>
+
+    <table class="table table-bordered">
+        @foreach (var category in categories)
+        {
+            <tr>
+                <td colspan="2" class="table-primary" style="font-weight: bold;">
+                    @category.Name (Total Price: @category.Items?.Sum(item => item.Price).ToString("C"))
+                </td>
+            </tr>
+            @foreach (var item in category.Items)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Price.ToString("C")</td>
+                </tr>
+            }
+        }
+    </table>
+}
+
+@code {
+    private List<Category>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load categories and include related items
+        categories = await DbContext.Categories
+            .Include(c => c.Items)
+            .ToListAsync();
+    }
+}
