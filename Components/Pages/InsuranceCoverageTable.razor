@@ -1,4 +1,5 @@
 ﻿@page "/table"
+@rendermode InteractiveServer
 @using InsuranceCoverageBrowser.Data
 @using InsuranceCoverageBrowser.Models
 @using Microsoft.EntityFrameworkCore
@@ -17,7 +18,9 @@ else
 {
     <h1>InsuranceCoverageTable</h1>
     <p>Total : @categories.SelectMany(c => c.Items).Sum(item => item.Price).ToString("C")</p>
-
+    <button class="btn btn-success mb-3" @onclick="AddNewItem">
+        <i class="bi bi-plus"></i> Add Item
+    </button>
     <table class="table table-bordered">
         @foreach (var category in categories)
         {
@@ -32,7 +35,7 @@ else
                     <td class="align-middle w-100">@item.Name</td>
                     <td class="align-middle">@item.Price.ToString("C")</td>
                     <td class="align-middle">
-                        <button class="btn btn-danger">
+                        <button class="btn btn-danger" @onclick="@(() => ShowDeleteConfirmationModal(item))">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
@@ -42,8 +45,12 @@ else
     </table>
 }
 
+<ConfirmationModal @ref="DeleteModal" Title="Delete Confirmation" Content="Are you sure you want to delete this item?" OnClose="HandleModalClose" />
+
 @code {
     private List<Category>? categories;
+    private ConfirmationModal? DeleteModal; // Reference to the modal component
+    private Item? SelectedItem; // Store the item to delete
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,5 +58,31 @@ else
         categories = await DbContext.Categories
             .Include(c => c.Items)
             .ToListAsync();
+    }
+
+    private void ShowDeleteConfirmationModal(Item item)
+    {
+        SelectedItem = item; // Store the item being deleted
+        DeleteModal?.Show(); // Show the modal
+    }
+
+    private async Task HandleModalClose(bool confirmed)
+    {
+        if (confirmed && SelectedItem != null)
+        {
+            // Handle deletion logic
+            DbContext.Items.Remove(SelectedItem);
+            await DbContext.SaveChangesAsync();
+
+            // Refresh the categories list
+            categories = await DbContext.Categories
+                .Include(c => c.Items)
+                .ToListAsync();
+        }
+    }
+
+    private void AddNewItem()
+    {
+        Console.WriteLine("Add Item clicked");
     }
 }
