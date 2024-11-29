@@ -22,15 +22,20 @@ else
         @foreach (var category in categories)
         {
             <tr>
-                <td colspan="2" class="table-primary" style="font-weight: bold;">
+                <td colspan="3" class="table-primary" style="font-weight: bold;">
                     @category.Name (Total Price: @category.Items?.Sum(item => item.Price).ToString("C"))
                 </td>
             </tr>
             @foreach (var item in category.Items)
             {
                 <tr>
-                    <td>@item.Name</td>
-                    <td>@item.Price.ToString("C")</td>
+                    <td class="align-middle w-100">@item.Name</td>
+                    <td class="align-middle">@item.Price.ToString("C")</td>
+                    <td class="align-middle">
+                        <button class="btn btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             }
         }
