@@ -1,0 +1,72 @@
+﻿@using InsuranceCoverageBrowser.Data
+@using InsuranceCoverageBrowser.Models
+@using Microsoft.EntityFrameworkCore
+
+<Modal @ref="newItemModal" Title="Add New Item" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <div class="mb-3">
+            <label for="categoryDropdown" class="form-label">Category</label>
+            <select id="categoryDropdown" class="form-select" @bind="selectedCategoryId">
+                <option value="">-- Select a Category --</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="itemName" class="form-label">Item Name</label>
+            <input id="itemName" type="text" class="form-control" @bind="itemName" />
+        </div>
+
+        <div class="mb-3">
+            <label for="itemPrice" class="form-label">Price</label>
+            <input id="itemPrice" type="number" class="form-control" @bind="itemPrice" step="0.01" />
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="HideAsync">Cancel</Button>
+        <Button Color="ButtonColor.Primary" @onclick="SubmitItem">Submit</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal newItemModal;
+    [Parameter] public List<Category> categories { get; set; } = new();
+    [Parameter] public EventCallback<Item> OnSubmitCallback { get; set; }
+    private int selectedCategoryId;
+    private string itemName = string.Empty;
+    private decimal itemPrice;
+
+    public async Task ShowAsync()
+    {
+        await newItemModal.ShowAsync();
+    }
+
+    public async Task HideAsync()
+    {
+        await newItemModal.HideAsync();
+    }
+
+    private async Task SubmitItem()
+    {
+        var selectedCategory = categories.FirstOrDefault(c => c.Id == selectedCategoryId);
+
+        if (selectedCategory is null)
+        {
+            return;
+        }
+
+        var newItem = new Item
+            {
+                Name = itemName,
+                Price = itemPrice,
+                CategoryId = selectedCategoryId,
+                Category = selectedCategory
+            };
+
+        await OnSubmitCallback.InvokeAsync(newItem);
+        await HideAsync();
+    }
+}

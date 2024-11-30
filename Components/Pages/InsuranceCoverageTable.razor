@@ -18,7 +18,7 @@ else
 {
     <h1>InsuranceCoverageTable</h1>
     <p>Total : @categories.SelectMany(c => c.Items).Sum(item => item.Price).ToString("C")</p>
-    <button class="btn btn-success mb-3" @onclick="AddNewItem">
+    <button class="btn btn-success mb-3" @onclick="ShowAddNewItemAsync">
         <i class="bi bi-plus"></i> Add Item
     </button>
     <table class="table table-bordered">
@@ -46,17 +46,23 @@ else
 }
 
 <ConfirmDialog @ref="deleteConfirmationDialog" />
+<NewItemModal @ref="addNewItemModal" categories="categories" OnSubmitCallback="HandleNewItemSubmit" />
 
 @code {
     private List<Category>? categories;
     private ConfirmDialog deleteConfirmationDialog = default!;
+    private NewItemModal addNewItemModal = default!;
 
-    protected override async Task OnInitializedAsync()
+    private async Task Refresh()
     {
-        // Load categories and include related items
         categories = await DbContext.Categories
             .Include(c => c.Items)
             .ToListAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
     }
 
     private async Task ShowDeleteConfirmationAsync(Item item)
@@ -70,19 +76,23 @@ else
 
         if (confirmation)
         {
-            // Handle deletion logic
             DbContext.Items.Remove(item);
             await DbContext.SaveChangesAsync();
-
-            // Refresh the categories list
-            categories = await DbContext.Categories
-                .Include(c => c.Items)
-                .ToListAsync();
+            await Refresh();
         }
     }
 
-    private void AddNewItem()
+    private async Task ShowAddNewItemAsync()
     {
-        Console.WriteLine("Add Item clicked");
+        await addNewItemModal.ShowAsync();
+    }
+
+    private async Task HandleNewItemSubmit(Item newItem)
+    {
+        Console.WriteLine($"New Item Added: {newItem.Name}, Price: {newItem.Price}, Category: {newItem.Category.Name}");
+
+        DbContext.Items.Add(newItem);
+        await DbContext.SaveChangesAsync();
+        await Refresh();
     }
 }
