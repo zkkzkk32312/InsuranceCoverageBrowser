@@ -35,7 +35,7 @@ else
                     <td class="align-middle w-100">@item.Name</td>
                     <td class="align-middle">@item.Price.ToString("C")</td>
                     <td class="align-middle">
-                        <button class="btn btn-danger" @onclick="@(() => ShowDeleteConfirmationModal(item))">
+                        <button class="btn btn-danger" @onclick="@(() => ShowDeleteConfirmationAsync(item))">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
@@ -45,12 +45,11 @@ else
     </table>
 }
 
-<ConfirmationModal @ref="DeleteModal" Title="Delete Confirmation" Content="Are you sure you want to delete this item?" OnClose="HandleModalClose" />
+<ConfirmDialog @ref="deleteConfirmationDialog" />
 
 @code {
     private List<Category>? categories;
-    private ConfirmationModal? DeleteModal; // Reference to the modal component
-    private Item? SelectedItem; // Store the item to delete
+    private ConfirmDialog deleteConfirmationDialog = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,18 +59,19 @@ else
             .ToListAsync();
     }
 
-    private void ShowDeleteConfirmationModal(Item item)
+    private async Task ShowDeleteConfirmationAsync(Item item)
     {
-        SelectedItem = item; // Store the item being deleted
-        DeleteModal?.Show(); // Show the modal
-    }
+        var options = new ConfirmDialogOptions { IsVerticallyCentered = true };
+        var confirmation = await deleteConfirmationDialog.ShowAsync(
+            title: "Are you sure you want to delete this item?",
+            message1: $"Item Name : {item.Name}",
+            message2: $"Item Price : {item.Price.ToString("C")}",
+            confirmDialogOptions: options);
 
-    private async Task HandleModalClose(bool confirmed)
-    {
-        if (confirmed && SelectedItem != null)
+        if (confirmation)
         {
             // Handle deletion logic
-            DbContext.Items.Remove(SelectedItem);
+            DbContext.Items.Remove(item);
             await DbContext.SaveChangesAsync();
 
             // Refresh the categories list
