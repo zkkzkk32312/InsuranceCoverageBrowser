@@ -53,6 +53,7 @@ else
     private List<Category>? categories;
     private ConfirmDialog deleteConfirmationDialog = default!;
     private NewItemModal addNewItemModal = default!;
+    [Inject] protected ToastService toastService { get; set; } = default!;
 
     private async Task Refresh()
     {
@@ -80,6 +81,7 @@ else
             DbContext.Items.Remove(item);
             await DbContext.SaveChangesAsync();
             await Refresh();
+            toastService.Notify(new(ToastType.Success, $"Item : {item.Name} deleted successfully."));
         }
     }
 
@@ -95,5 +97,6 @@ else
         DbContext.Items.Add(newItem);
         await DbContext.SaveChangesAsync();
         await Refresh();
+        toastService.Notify(new(ToastType.Success, $"Item : {newItem.Name} added successfully."));
     }
 }
