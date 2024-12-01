@@ -11,12 +11,13 @@
 }
 else if (!categories.Any())
 {
-    <h1>InsuranceCoverageTable</h1>
+    <h1>Insured Items</h1>
     <p>Total : $0.00</p>
 }
 else
 {
-    <h1>InsuranceCoverageTable</h1>
+    <h1>Insured Items</h1>
+    <br />
     <p>Total : @categories.SelectMany(c => c.Items).Sum(item => item.Price).ToString("C")</p>
     <button class="btn btn-success mb-3" @onclick="ShowAddNewItemAsync">
         <i class="bi bi-plus"></i> Add Item
