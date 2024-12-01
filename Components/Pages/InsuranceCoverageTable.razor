@@ -24,8 +24,8 @@ else
     <table class="table table-bordered">
         @foreach (var category in categories)
         {
-            <tr>
-                <td colspan="3" class="table-primary" style="font-weight: bold;">
+            <tr class="table-primary">
+                <td colspan="3" class="table-primary pt-3 pb-3" style="font-weight: bold;">
                     @category.Name (Total Price: @category.Items?.Sum(item => item.Price).ToString("C"))
                 </td>
             </tr>
